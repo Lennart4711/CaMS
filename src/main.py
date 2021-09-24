@@ -1,12 +1,13 @@
 import math
 import os
-from itertools import combinations
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import pygame
 pygame.init()
 
 from building import Building
+from connection import Connection
 
 
 class Game():
@@ -28,10 +29,8 @@ class Game():
 
 
         self.buildings = []
-        self.buildings.append(Building((0,0),16))
-        self.buildings.append(Building((1000,0),16))
-        self.buildings.append(Building((0,1000),16))
-        self.buildings.append(Building((500,500),16))
+        self.connections = []
+
 
     def screen_to_world(self, pos):
         x = pos[0]/self.zoom+self.win_x
@@ -47,24 +46,15 @@ class Game():
 
     def draw(self):
         self.win.fill((125,124, 110))
-        lines = 0
         for building in self.buildings:
             building.draw(self.win, self.zoom, self.win_x, self.win_y)
-            
-            for compare in self.buildings:
-                if not compare in building.skip:
-                    if(building is not compare and math.dist(building.pos, compare.pos)<200):
-                        lines += 1
-                        compare.skip.append(building)
-                        pygame.draw.line(self.win, (0,0,0), self.world_to_screen(building.pos), self.world_to_screen(compare.pos))
-        
-        for building in self.buildings:
-            building.skip = []
-        
+       
+        for connection in self.connections:
+            connection.draw(self.win, self.zoom, self.win_x, self.win_y)
+      
         pygame.display.flip()
-        print(lines)
-        
 
+        
     def input(self):
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
@@ -88,26 +78,27 @@ class Game():
                     self.win_x += offset[0]
                     self.win_y += offset[1]
                 elif event.button == 1:
-                
-                    build = True
+                    #add building and corresponding connections
                     for building in self.buildings:
                         distance = math.dist(self.screen_to_world(pygame.mouse.get_pos()), building.pos)
-                        
                         if(distance < 100):
-                            build = False
-                    if build:
+                            break
+                    else:
                         self.buildings.append(Building(self.screen_to_world(pygame.mouse.get_pos()),16))
-
+                        for building in self.buildings:
+                            if(building is not self.buildings[-1] and (math.dist(self.buildings[-1].pos, building.pos)<200)):
+                                self.connections.append(Connection(building.pos,self.buildings[-1].pos))
+      
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-                self.win_x -=0.5
+                self.win_x -=2/self.zoom
         elif keys[pygame.K_RIGHT]:
-                self.win_x +=0.5
+                self.win_x +=2/self.zoom
 
         if keys[pygame.K_UP]:
-                self.win_y -=0.5
+                self.win_y -=2/self.zoom
         elif keys[pygame.K_DOWN]:
-                self.win_y += 0.5
+                self.win_y += 2/self.zoom
 
     
     def update(self):
