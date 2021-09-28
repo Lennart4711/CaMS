@@ -1,13 +1,14 @@
 import pygame
 
 class Building():
-    def __init__(self, pos,width):
+    def __init__(self, pos):
         self.pos = pos
-        self.x, self.y = pos
+        self.x = pos[0]
+        self.y = pos[1]
         
-        self.width = width
+
         self.img = pygame.image.load('assets\house.png')
-      
+        self.cons = []
         
 
     def draw(self, win, zoom, win_x, win_y, color=(0,0,0)):
@@ -20,5 +21,5 @@ class Building():
                     )
                 )
         
-
+ 
     

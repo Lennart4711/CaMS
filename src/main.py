@@ -8,6 +8,7 @@ pygame.init()
 
 from building import Building
 from connection import Connection
+from worker import Worker
 
 
 class Game():
@@ -29,8 +30,11 @@ class Game():
 
 
         self.buildings = []
+        self.buildings.append(Building([500,500]))
         self.connections = []
-
+        self.workers = []
+        self.workers.append(Worker(self.buildings[0]))
+        self.workers.append(Worker(self.buildings[0],(123,1,1)))
 
     def screen_to_world(self, pos):
         x = pos[0]/self.zoom+self.win_x
@@ -46,12 +50,24 @@ class Game():
 
     def draw(self):
         self.win.fill((125,124, 110))
+
+        for connection in self.connections:
+            connection.draw(self.win, self.zoom, self.win_x, self.win_y)
+        
         for building in self.buildings:
             building.draw(self.win, self.zoom, self.win_x, self.win_y)
        
-        for connection in self.connections:
-            connection.draw(self.win, self.zoom, self.win_x, self.win_y)
-      
+        
+        for worker in self.workers:
+            worker.draw(self.win, self.zoom, self.win_x, self.win_y)
+            worker.walk()
+        try:
+            pass
+            
+        except IndexError:
+            pass
+
+        
         pygame.display.flip()
 
         
@@ -79,16 +95,35 @@ class Game():
                     self.win_y += offset[1]
                 elif event.button == 1:
                     #add building and corresponding connections
+                    nearest = 1000
+                    build = True
                     for building in self.buildings:
                         distance = math.dist(self.screen_to_world(pygame.mouse.get_pos()), building.pos)
+                        if(distance < nearest):
+                            nearest = distance
                         if(distance < 100):
-                            break
-                    else:
-                        self.buildings.append(Building(self.screen_to_world(pygame.mouse.get_pos()),16))
+                            build = False 
+                    
+                    if(build and nearest < 200):
+                        self.buildings.append(Building(list(self.screen_to_world(pygame.mouse.get_pos()))))
                         for building in self.buildings:
                             if(building is not self.buildings[-1] and (math.dist(self.buildings[-1].pos, building.pos)<200)):
                                 self.connections.append(Connection(building.pos,self.buildings[-1].pos))
-      
+                                building.cons.append(self.buildings[-1])
+                                self.buildings[-1].cons.append(building)
+                elif event.button == 3:
+                    nearest = 1000
+                    b = None
+                    for building in self.buildings:
+                        distance = int(math.dist(self.screen_to_world(pygame.mouse.get_pos()), building.pos))
+                        
+                        if(distance < 40 and distance < nearest):
+                            b = building
+                            nearest = distance
+                    if b is not None:
+                        self.workers[0].goto(b)
+                            
+
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
                 self.win_x -=2/self.zoom
