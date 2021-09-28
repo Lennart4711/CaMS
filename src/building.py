@@ -11,7 +11,7 @@ class Building():
         self.cons = []
         
 
-    def draw(self, win, zoom, win_x, win_y, color=(0,0,0)):
+    def draw(self, win, zoom, win_x, win_y):
         
         win.blit(   #img
                     pygame.transform.scale(self.img, (int(32*zoom),int(32*zoom))),
