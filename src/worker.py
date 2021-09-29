@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+from mine import Mine
 
 
 class Worker:
@@ -16,7 +17,9 @@ class Worker:
         self.notification = False
 
         self.img = pygame.image.load('assets\worker_red.png').convert()
-        
+        self.mineral = None
+
+
     def next(self):
         self.current = self.destination
       
@@ -38,7 +41,9 @@ class Worker:
     def walk(self):
         
         if(math.dist(self.pos, self.destination.pos)<10):
-           self.next()
+            if(type(self.destination)==Mine):
+                pass
+            self.next()
 
         self.pos[0] += self.dif_x/self.SPEED
         self.pos[1] += self.dif_y/self.SPEED

@@ -7,9 +7,9 @@ class Building():
         self.y = pos[1]
         
 
-        self.img = pygame.image.load('assets\house.png')
+        self.img = pygame.image.load('assets\\building.png')
         self.cons = []
-        
+        self.minerals = []
 
     def draw(self, win, zoom, win_x, win_y):
         
@@ -20,6 +20,9 @@ class Building():
                         (self.y-win_y)*zoom-16*zoom
                     )
                 )
+    
+    def update(self):
+        pass
 
 
         

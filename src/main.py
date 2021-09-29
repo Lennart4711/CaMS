@@ -1,4 +1,5 @@
 import math
+import time
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
@@ -7,7 +8,8 @@ pygame.init()
 from building import Building
 from connection import Connection
 from worker import Worker
-
+from mine import Mine
+from house import House
 
 class Game():
     def __init__(self):
@@ -16,20 +18,23 @@ class Game():
         self.FIELD_SIZE = 2000
         self.WIN_X = 1000
         self.WIN_Y = 1000
+        self.SPAWN_TIME = 0.5
         
         self.quit = False
         self.win = pygame.display.set_mode((self.WIN_X, self.WIN_Y))
         pygame.display.set_caption("CaMS")
-        self.win_x = 0
-        self.win_y = 0
-        self.zoom = 1
+        self.win_x = 400
+        self.win_y = 400
+        self.zoom = 3
         
-
+        self.type = Building
         self.buildings = []
-        self.buildings.append(Building([500,500]))
+        self.buildings.append(self.type([500,500]))
         self.connections = []
         self.workers = []
         self.workers.append(Worker(self.buildings[0]))     
+        
+        self.last = time.time()
 
     def screen_to_world(self, pos):
         x = pos[0]/self.zoom+self.win_x
@@ -90,10 +95,23 @@ class Game():
                             self.workers[0].goto(building)            
                             
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_PLUS]:
+
+        if keys[pygame.K_PLUS] and time.time()-self.last>self.SPAWN_TIME:
+            self.last = time.time()
             self.workers.append(Worker(self.buildings[0]))
             print(len(self.workers))
 
+        self.move(keys)
+
+        if keys[pygame.K_1]:
+            self.type = Building
+        elif keys[pygame.K_2]:
+            self.type = House
+        elif keys[pygame.K_3]:
+            self.type = Mine
+        
+
+    def move(self, keys):
         if keys[pygame.K_LEFT]:
                 self.win_x -=2/self.zoom
         elif keys[pygame.K_RIGHT]:
@@ -113,16 +131,22 @@ class Game():
         self.win_y += offset[1]
 
     def add_building(self, pos):
-        self.buildings.append(Building(pos))
+        self.buildings.append(self.type(pos))
         for building in self.buildings:
             if(building is not self.buildings[-1] and (math.dist(self.buildings[-1].pos, building.pos)<200)):
                 self.connections.append(Connection(building.pos,self.buildings[-1].pos))
                 building.cons.append(self.buildings[-1])
                 self.buildings[-1].cons.append(building)
 
+    def building_logic(self):
+        for building in self.buildings:
+            building.update()
+
     def update(self):
+        self.building_logic()
         self.draw()
         self.input()    
+        
     def start(self):
             self.quit = False
             while(not self.quit): 
