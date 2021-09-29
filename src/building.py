@@ -20,6 +20,8 @@ class Building():
                         (self.y-win_y)*zoom-16*zoom
                     )
                 )
+
+
         
  
     
