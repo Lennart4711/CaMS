@@ -40,9 +40,7 @@ class Worker:
 
     def walk(self):
         
-        if(math.dist(self.pos, self.destination.pos)<10):
-            if(type(self.destination)==Mine):
-                pass
+        if (math.dist(self.pos, self.destination.pos)<10):
             self.next()
 
         self.pos[0] += self.dif_x/self.SPEED

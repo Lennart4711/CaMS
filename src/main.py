@@ -4,12 +4,36 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 pygame.init()
+from pygame.locals import *
+
 
 from building import Building
 from connection import Connection
 from worker import Worker
 from mine import Mine
 from house import House
+import cProfile, pstats, io
+
+
+
+def profile(fnc):
+    
+    """A decorator that uses cProfile to profile a function"""
+    
+    def inner(*args, **kwargs):
+        
+        pr = cProfile.Profile()
+        pr.enable()
+        retval = fnc(*args, **kwargs)
+        pr.disable()
+        s = io.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print(s.getvalue())
+        return retval
+
+    return inner
 
 class Game():
     def __init__(self):
@@ -19,22 +43,32 @@ class Game():
         self.WIN_X = 1000
         self.WIN_Y = 1000
         self.SPAWN_TIME = 0.5
-        
+
         self.quit = False
         self.win = pygame.display.set_mode((self.WIN_X, self.WIN_Y))
         pygame.display.set_caption("CaMS")
         self.win_x = 400
         self.win_y = 400
         self.zoom = 3
-        
+
         self.type = Building
         self.buildings = []
-        self.buildings.append(self.type([500,500]))
         self.connections = []
+
+        for x in range(20):
+            for y in range(20):
+                self.add_building(list((x*100,y*100)))
+                
+                
         self.workers = []
         self.workers.append(Worker(self.buildings[0]))     
-        
+        for _ in range(1000):
+            self.workers.append(Worker(self.buildings[210]))     
+
         self.last = time.time()
+                
+
+
 
     def screen_to_world(self, pos):
         x = pos[0]/self.zoom+self.win_x
@@ -53,12 +87,10 @@ class Game():
             connection.draw(self.win, self.zoom, self.win_x, self.win_y)
         
         for building in self.buildings:
-            building.draw(self.win, self.zoom, self.win_x, self.win_y)
+            building.draw(self.win, self.zoom, self.win_x, self.win_y, )
         
         for worker in self.workers:
             worker.draw(self.win, self.zoom, self.win_x, self.win_y)
-            worker.walk()
-        
         pygame.display.flip()
 
     def input(self):
@@ -99,7 +131,6 @@ class Game():
         if keys[pygame.K_PLUS] and time.time()-self.last>self.SPAWN_TIME:
             self.last = time.time()
             self.workers.append(Worker(self.buildings[0]))
-            print(len(self.workers))
 
         self.move(keys)
 
@@ -142,15 +173,24 @@ class Game():
         for building in self.buildings:
             building.update()
 
+    def worker_logic(self):
+        for worker in self.workers:
+            worker.walk()
+    @profile
     def update(self):
         self.building_logic()
+        self.worker_logic()
+        time1 = time.time()
+
         self.draw()
+        time2 = time.time()
         self.input()    
         
     def start(self):
             self.quit = False
             while(not self.quit): 
                 self.update()
+               
 
 
 if __name__ == '__main__':
